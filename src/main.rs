@@ -1,7 +1,7 @@
+use clap::Parser;
+use csv::Writer;
 use reqwest::Client;
 use serde_json::Value;
-use csv::Writer;
-use clap::Parser;
 
 async fn fetch_channel_id(
     api_key: &str,
@@ -35,7 +35,10 @@ async fn fetch_channel_id(
     Ok(channel_id.to_string())
 }
 
-async fn fetch_videos(api_key: &str, channel_id: String) -> Result<Vec<Value>, Box<dyn std::error::Error>> {
+async fn fetch_videos(
+    api_key: &str,
+    channel_id: String,
+) -> Result<Vec<Value>, Box<dyn std::error::Error>> {
     let client = Client::new();
     let mut videos = Vec::new();
     let mut page_token = String::new();
@@ -75,8 +78,8 @@ async fn fetch_videos(api_key: &str, channel_id: String) -> Result<Vec<Value>, B
     Ok(videos)
 }
 
-fn write_to_csv(videos: Vec<Value>) -> Result<(), Box<dyn std::error::Error>> {
-    let mut writer = Writer::from_path("Misha_Petrov.csv")?;
+fn write_to_csv(handle: String, videos: Vec<Value>) -> Result<(), Box<dyn std::error::Error>> {
+    let mut writer = Writer::from_path(format!("{}.csv", handle.as_str().replace("@", "")))?;
 
     writer.write_record(&["Video ID", "Title", "Description", "Published At"])?;
 
@@ -118,7 +121,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if videos.is_empty() {
                 println!("No videos found");
             } else {
-                write_to_csv(videos)?;
+                write_to_csv(args.channel_handle, videos)?;
                 println!("Videos written to a CSV file successfully");
             }
         }
